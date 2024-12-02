@@ -24,7 +24,7 @@ To get started with this project, follow these steps:
 
 3. **Run a specific day's solution:**
     ```sh
-    npm run day src/01.ts
+    npm run day src/01/code.ts
     ```
 
 ## Dependencies
