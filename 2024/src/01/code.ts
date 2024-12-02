@@ -1,17 +1,8 @@
 import * as fs from "fs";
 
 const args = process.argv.slice(2);
-const USE_DEMO_INPUT = args.includes("DEMO=true");
-
-const demoInput = `3   4
-4   3
-2   5
-1   3
-3   9
-3   3`;
-const input = USE_DEMO_INPUT
-  ? demoInput
-  : fs.readFileSync("src/01.txt", "utf-8");
+const filename = args[0];
+const input = fs.readFileSync(filename, "utf-8");
 
 const parseInput = (input: string) =>
   input.split("\n").map((line) => line.split("   ").map(Number));
