@@ -22,6 +22,7 @@ const TURN_RIGHT_RECORD: Record<string, string> = {
 
 const lines = input.split("\n");
 const grid = lines.map((line) => line.split(""));
+const getGridCopy = (grid: string[][]): string[][] => grid.map((line) => line.slice());
 const height = grid.length;
 const width = grid[0].length;
 const visitedBooleanGrid = grid.map((line) => line.map(() => false));
@@ -39,7 +40,7 @@ const getInitialPosition = (grid: string[][]): { x: number, y: number, direction
 
 const initialPosition = getInitialPosition(grid);
 
-const getNextPosition = (x: number, y: number, direction: string): { x: number, y: number, direction: string } | { finished: true } => {
+const getNextPosition = (grid: string[][], x: number, y: number, direction: string): { x: number, y: number, direction: string } | { finished: true } => {
   visitedBooleanGrid[y][x] = true;
   const delta = { x: 0, y: 0 };
   switch (direction) {
@@ -65,14 +66,55 @@ const getNextPosition = (x: number, y: number, direction: string): { x: number, 
   return nextPosition;
 }
 
-let position = initialPosition;
-while (true) {
-  const nextPosition = getNextPosition(position.x, position.y, position.direction);
-  if ("finished" in nextPosition) {
-    break;
+const getNumberOfTilesVisited = (grid: string[][]): number => {
+  let position = initialPosition;
+  while (true) {
+    const nextPosition = getNextPosition(grid, position.x, position.y, position.direction);
+    if ("finished" in nextPosition) {
+      break;
+    }
+    position = nextPosition;
   }
-  position = nextPosition;
+  // count booleans set to true in visitedBooleanGrid
+  const visitedCellCount = visitedBooleanGrid.reduce((acc, line) => acc + line.filter((cell) => cell).length, 0);
+  return visitedCellCount;
 }
-// count booleans set to true in visitedBooleanGrid
-const visitedCellCount = visitedBooleanGrid.reduce((acc, line) => acc + line.filter((cell) => cell).length, 0);
-console.log(`Visited ${visitedCellCount} cells`);
+
+const result = getNumberOfTilesVisited(grid);
+console.log(`Number of tiles visited: ${result}`);
+
+const doesInfiniteLoopOccur = (grid: string[][]): boolean => {
+  let position = initialPosition;
+  let steps = 0;
+  while (true) {
+    const nextPosition = getNextPosition(grid, position.x, position.y, position.direction);
+    if ("finished" in nextPosition) {
+      break;
+    }
+    position = nextPosition;
+    steps++;
+    if (steps > 10_000) {
+      return true;
+    }
+  }
+  return false;
+}
+
+const getNumberOfTilesThatWhenObstacleAddedCauseInfiniteLoop = (grid: string[][]): number => {
+  let count = 0;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (grid[y][x] === EMPTY) {
+        const newGrid = getGridCopy(grid);
+        newGrid[y][x] = OCCUPIED;
+        if (doesInfiniteLoopOccur(newGrid)) {
+          count++;
+        }
+      }
+    }
+  }
+  return count;
+}
+
+const result2 = getNumberOfTilesThatWhenObstacleAddedCauseInfiniteLoop(grid);
+console.log(`Number of tiles that when obstacle added cause infinite loop: ${result2}`);
