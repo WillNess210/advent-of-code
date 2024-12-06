@@ -26,18 +26,41 @@ while (i < lines.length) {
   updatesList.push(lines[i++].split(",").map(Number));
 }
 
+function areUpdatesValidForRule(updates: number[], rule: Rule): boolean {
+  const printBeforeIndex = updates.indexOf(rule.printBefore);
+  const printAfterIndex = updates.indexOf(rule.printAfter);
+  return printBeforeIndex <= printAfterIndex;
+}
+
 function areUpdatesValid(updates: number[], rules: Rule[]): boolean {
   const updatesSet = new Set(updates);
   const rulesThatApply = rules.filter(
     ({ printBefore, printAfter }) => updatesSet.has(printBefore) && updatesSet.has(printAfter));
   for (const rule of rulesThatApply) {
-    const printBeforeIndex = updates.indexOf(rule.printBefore);
-    const printAfterIndex = updates.indexOf(rule.printAfter);
-    if (printBeforeIndex > printAfterIndex) {
+    if (!areUpdatesValidForRule(updates, rule)) {
       return false;
     }
   }
   return true;
+}
+
+function fixInvalidUpdates(updates: number[], rules: Rule[]): number[] {
+  const updatesSet = new Set(updates);
+  const rulesThatApply = rules.filter(
+    ({ printBefore, printAfter }) => updatesSet.has(printBefore) && updatesSet.has(printAfter));
+  const updatesCopy = updates.slice();
+  while (!areUpdatesValid(updatesCopy, rules)) {
+    const invalidRule = rulesThatApply.find((rule) => !areUpdatesValidForRule(updatesCopy, rule));
+    if (!invalidRule) {
+      throw new Error("No invalid rule found");
+    }
+    const printBeforeIndex = updatesCopy.indexOf(invalidRule.printBefore);
+    const printAfterIndex = updatesCopy.indexOf(invalidRule.printAfter);
+    const temp = updatesCopy[printBeforeIndex];
+    updatesCopy[printBeforeIndex] = updatesCopy[printAfterIndex];
+    updatesCopy[printAfterIndex] = temp;
+  }
+  return updatesCopy;
 }
 
 function getMiddleNumberOfUpdates(updates: number[]): number {
@@ -55,5 +78,18 @@ function getSumOfMiddleNumberOfValidUpdates(updatesList: number[][], rules: Rule
   return sum;
 }
 
+function getSumOfMiddleNumbersOfFixedInvalidUpdates(updatesList: number[][], rules: Rule[]): number {
+  let sum = 0;
+  for (const updates of updatesList) {
+    if (!areUpdatesValid(updates, rules)) {
+      const fixedUpdates = fixInvalidUpdates(updates, rules);
+      sum += getMiddleNumberOfUpdates(fixedUpdates);
+    }
+  }
+  return sum;
+}
+
 const result = getSumOfMiddleNumberOfValidUpdates(updatesList, rules);
 console.log(`Result: ${result}`);
+const result2 = getSumOfMiddleNumbersOfFixedInvalidUpdates(updatesList, rules);
+console.log(`Result 2: ${result2}`);
