@@ -74,6 +74,56 @@ function getAllAntinodeLocations(grid: string[][], antennaPairs: [Location, Loca
   return antennaPairs.flatMap(([a, b]) => getAntinodeLocations(grid, a, b));
 }
 
+function simplifyFraction(numerator: number, denominator: number): [number, number] {
+  // Find the greatest common divisor (GCD) using the Euclidean algorithm
+  function gcd(a: number, b: number): number {
+    while (b !== 0) {
+      let temp = b;
+      b = a % b;
+      a = temp;
+    }
+    return a;
+  }
+
+  const divisor = gcd(numerator, denominator);
+  return [numerator / divisor, denominator / divisor];
+}
+
+function getAntinodeLocations2(grid: string[][], a: Location, b: Location): Location[] {
+  const height = grid.length;
+  const width = grid[0].length;
+  const { x: dxUnsimplified, y: dyUnsimplified } = getDelta(a, b);
+  const [dx, dy] = simplifyFraction(dxUnsimplified, dyUnsimplified);
+  // const [dx, dy] = [dxUnsimplified, dyUnsimplified];
+
+  const antinodeLocations: Location[] = [];
+  let counter = 0;
+  while (true) {
+    const nx = a.x + (counter * dx);
+    const ny = a.y + (counter * dy);
+    if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+      break;
+    }
+    antinodeLocations.push({ x: nx, y: ny });
+    counter++;
+  }
+  counter = 0;
+  while (true) {
+    const nx = b.x - (counter * dx);
+    const ny = b.y - (counter * dy);
+    if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+      break;
+    }
+    antinodeLocations.push({ x: nx, y: ny });
+    counter++;
+  }
+  return antinodeLocations;
+}
+
+function getAllAntinodeLocations2(grid: string[][], antennaPairs: [Location, Location][]): Location[] {
+  return antennaPairs.flatMap(([a, b]) => getAntinodeLocations2(grid, a, b));
+}
+
 function getNumberOfUniqueCellsWithAntinodeLocations(grid: string[][]): number {
   const antennas = getAntennaRecord(grid);
   const antennaPairs = getAntennaPairCombinations(antennas);
@@ -85,3 +135,13 @@ function getNumberOfUniqueCellsWithAntinodeLocations(grid: string[][]): number {
 const grid = parseInputAsGridOfChars(input);
 const result = getNumberOfUniqueCellsWithAntinodeLocations(grid);
 console.log(`Result: ${result}`);
+
+function getNumberOfUniqueCellsWithAntinodeLocations2(grid: string[][]): number {
+  const antennas = getAntennaRecord(grid);
+  const antennaPairs = getAntennaPairCombinations(antennas);
+  const antinodeLocations = getAllAntinodeLocations2(grid, antennaPairs);
+  const uniqueAntinodeLocations = new Set(antinodeLocations.map(({ x, y }) => `${x},${y}`));
+  return uniqueAntinodeLocations.size;
+}
+const result2 = getNumberOfUniqueCellsWithAntinodeLocations2(grid);
+console.log(`Result2: ${result2}`);
