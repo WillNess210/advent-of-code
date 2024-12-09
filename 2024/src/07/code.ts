@@ -19,8 +19,8 @@ function parseInput(input: string): Equation[] {
   });
 }
 
-type Operator = "+" | "*";
-const ALL_OPERATORS: Operator[] = ["+", "*"];
+type Operator = "+" | "*" | "||";
+const ALL_OPERATORS: Operator[] = ["+", "*", "||"];
 
 function tryOperators(equation: Equation, operators: Operator[]): boolean {
   if (operators.length !== equation.inputs.length - 1) {
@@ -28,12 +28,17 @@ function tryOperators(equation: Equation, operators: Operator[]): boolean {
   }
   let total = equation.inputs[0];
   for (let i = 1; i < equation.inputs.length; i++) {
+    if (total > equation.equationAnswer) {
+      return false;
+    }
     const operator = operators[i - 1];
     const input = equation.inputs[i];
     if (operator === "+") {
       total += input;
     } else if (operator === "*") {
       total *= input;
+    } else if (operator === "||") {
+      total = parseInt(`${total}${input}`);
     } else {
       throw new Error("Invalid operator");
     }
